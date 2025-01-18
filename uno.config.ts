@@ -94,6 +94,7 @@ const COLOR_PRIMITIVES = {
     gray: generateAlphaPalette(BASE_COLORS.gray[900]),
     red: generateAlphaPalette(BASE_COLORS.red[500]),
     accent: generateAlphaPalette(BASE_COLORS.accent[500]),
+    green: generateAlphaPalette(BASE_COLORS.green[500]),
   },
 };
 
@@ -106,6 +107,8 @@ export default defineConfig({
     'transition-theme': 'transition-[background-color,border-color,color] duration-150 bolt-ease-cubic-bezier',
     kdb: 'bg-bolt-elements-code-background text-bolt-elements-code-text py-1 px-1.5 rounded-md',
     'max-w-chat': 'max-w-[var(--chat-max-width)]',
+    'light-only': 'block [html[data-theme=light]_&]:block [html[data-theme=dark]_&]:hidden',
+    'dark-only': 'block [html[data-theme=dark]_&]:block [html[data-theme=light]_&]:hidden',
   },
   rules: [
     /**

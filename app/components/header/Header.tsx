@@ -5,9 +5,11 @@ import { classNames } from '~/utils/classNames';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
 import { AuthButton } from '../auth/AuthButton';
+import { themeStore } from '~/lib/stores/theme';
 
 export function Header() {
   const chat = useStore(chatStore);
+  const theme = useStore(themeStore);
 
   return (
     <header
@@ -19,8 +21,11 @@ export function Header() {
       <div className="flex items-center gap-2 z-logo text-bolt-elements-textPrimary cursor-pointer">
         <div className="i-ph:sidebar-simple-duotone text-xl" />
         <a href="/" className="text-2xl font-semibold text-accent flex items-center">
-          <img src="/logo-light-styled.png" alt="logo" className="w-[90px] inline-block dark:hidden" />
-          <img src="/logo-dark-styled.png" alt="logo" className="w-[90px] inline-block hidden dark:block" />
+          <img 
+            src={theme === 'dark' ? '/logo-dark-styled.png' : '/logo-light-styled.png'} 
+            alt="logo" 
+            className="w-[90px]" 
+          />
         </a>
       </div>
       
