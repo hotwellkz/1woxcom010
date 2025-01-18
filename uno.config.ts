@@ -235,16 +235,15 @@ export default defineConfig({
   presets: [
     presetUno({
       dark: {
-        light: '[data-theme="light"]',
-        dark: '[data-theme="dark"]',
+        media: '(prefers-color-scheme: dark)',
       },
     }),
     presetIcons({
-      warn: true,
       collections: {
         ...customIconCollection,
+        'ph': () => import('@iconify-json/ph/icons.json').then((i) => i.default),
+        carbon: () => import('@iconify-json/carbon/icons.json').then((i) => i.default),
       },
-      unit: 'em',
     }),
   ],
 });
