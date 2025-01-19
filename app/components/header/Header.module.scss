@@ -1,0 +1,15 @@
+.lightLogo {
+  display: block;
+
+  :global(html[data-theme='dark']) & {
+    display: none;
+  }
+}
+
+.darkLogo {
+  display: none;
+
+  :global(html[data-theme='dark']) & {
+    display: block;
+  }
+}

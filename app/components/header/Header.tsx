@@ -6,10 +6,20 @@ import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
 import { AuthButton } from '../auth/AuthButton';
 import { themeStore } from '~/lib/stores/theme';
+import styles from './Header.module.scss';
 
 export function Header() {
   const chat = useStore(chatStore);
   const theme = useStore(themeStore);
+  
+  // Get initial theme from localStorage if available
+  let initialTheme = theme;
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      initialTheme = savedTheme;
+    }
+  }
 
   return (
     <header
@@ -22,9 +32,14 @@ export function Header() {
         <div className="i-ph:sidebar-simple-duotone text-xl" />
         <a href="/" className="text-2xl font-semibold text-accent flex items-center">
           <img 
-            src={theme === 'dark' ? '/logo-dark-styled.png' : '/logo-light-styled.png'} 
+            src="/logo-light-styled.png"
             alt="logo" 
-            className="w-[90px]" 
+            className={classNames("w-[90px]", styles.lightLogo)}
+          />
+          <img 
+            src="/logo-dark-styled.png"
+            alt="logo" 
+            className={classNames("w-[90px]", styles.darkLogo)}
           />
         </a>
       </div>
