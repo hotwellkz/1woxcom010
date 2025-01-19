@@ -2,6 +2,7 @@ import { useStore } from '@nanostores/react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { IconButton } from '~/components/ui/IconButton';
 import { workbenchStore } from '~/lib/stores/workbench';
+import { previewStore } from '~/lib/client';
 import { PortDropdown } from './PortDropdown';
 import { ScreenshotSelector } from './ScreenshotSelector';
 
@@ -53,6 +54,22 @@ export const Preview = memo(() => {
     setIframeUrl(baseUrl);
   }, [activePreview]);
 
+  useEffect(() => {
+    if (activePreview) {
+      previewStore.startPreview(activePreview.port);
+    }
+  }, [activePreview?.port]);
+
+  useEffect(() => {
+    if (activePreview && iframeRef.current) {
+      setUrl(activePreview.baseUrl);
+      setIframeUrl(activePreview.baseUrl);
+      
+      // Обновляем превью через WebSocket
+      previewStore.refresh();
+    }
+  }, [activePreview]);
+
   const validateUrl = useCallback(
     (value: string) => {
       if (!activePreview) {
@@ -90,6 +107,8 @@ export const Preview = memo(() => {
   const reloadPreview = () => {
     if (iframeRef.current) {
       iframeRef.current.src = iframeRef.current.src;
+      // Обновляем превью через WebSocket
+      previewStore.refresh();
     }
   };
 

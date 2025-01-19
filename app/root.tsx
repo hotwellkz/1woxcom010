@@ -7,6 +7,11 @@ import { stripIndents } from './utils/stripIndent';
 import { createHead } from 'remix-island';
 import { useEffect } from 'react';
 import { YandexMetrika } from './components/YandexMetrika';
+import { logStore } from './lib/stores/logs';
+import { modelStore } from './lib/stores/model';
+import { initializeModelList } from './utils/constants';
+import { providersStore } from './lib/stores/settings';
+import { LLMManager } from './lib/modules/llm/manager';
 
 import reactToastifyStyles from 'react-toastify/dist/ReactToastify.css?url';
 import globalStyles from './styles/index.scss?url';
@@ -103,23 +108,67 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-import { logStore } from './lib/stores/logs';
-
 export default function App() {
   const theme = useStore(themeStore);
+  const model = useStore(modelStore);
 
   useEffect(() => {
+    // Инициализация приложения
     logStore.logSystem('Application initialized', {
       theme,
       platform: navigator.platform,
       userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
     });
+
+    // Инициализируем список моделей и провайдеров
+    const initModels = async () => {
+      try {
+        // Получаем менеджер LLM
+        const llmManager = LLMManager.getInstance(process.env);
+        
+        // Получаем список провайдеров
+        const providers = llmManager.getAllProviders();
+        
+        // Обновляем настройки провайдеров
+        providers.forEach(provider => {
+          providersStore.setKey(provider.name, {
+            ...provider,
+            settings: {
+              enabled: true,
+            },
+          });
+        });
+
+        // Инициализируем список моделей
+        await modelStore.checkAvailableModels();
+      } catch (error) {
+        console.error('Error initializing models:', error);
+      }
+    };
+
+    // Запускаем инициализацию с небольшой задержкой
+    const timer = setTimeout(() => {
+      initModels();
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <Layout>
-      <Outlet />
-    </Layout>
+    <html lang="en" data-theme={theme}>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <Layout>
+          <Outlet />
+        </Layout>
+        <Scripts />
+      </body>
+    </html>
   );
 }

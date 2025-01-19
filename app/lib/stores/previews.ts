@@ -1,4 +1,3 @@
-import type { WebContainer } from '@webcontainer/api';
 import { atom } from 'nanostores';
 
 export interface PreviewInfo {
@@ -9,41 +8,34 @@ export interface PreviewInfo {
 
 export class PreviewsStore {
   #availablePreviews = new Map<number, PreviewInfo>();
-  #webcontainer: Promise<WebContainer>;
-
   previews = atom<PreviewInfo[]>([]);
 
-  constructor(webcontainerPromise: Promise<WebContainer>) {
-    this.#webcontainer = webcontainerPromise;
-
+  constructor() {
     this.#init();
   }
 
   async #init() {
-    const webcontainer = await this.#webcontainer;
+    // Initialize without webcontainer for now
+    this.previews.set([]);
+  }
 
-    webcontainer.on('port', (port, type, url) => {
-      let previewInfo = this.#availablePreviews.get(port);
+  addPreview(port: number, baseUrl: string) {
+    const previewInfo: PreviewInfo = {
+      port,
+      ready: true,
+      baseUrl
+    };
 
-      if (type === 'close' && previewInfo) {
-        this.#availablePreviews.delete(port);
-        this.previews.set(this.previews.get().filter((preview) => preview.port !== port));
+    this.#availablePreviews.set(port, previewInfo);
+    this.previews.set([...this.previews.get(), previewInfo]);
+  }
 
-        return;
-      }
+  removePreview(port: number) {
+    this.#availablePreviews.delete(port);
+    this.previews.set(this.previews.get().filter((preview) => preview.port !== port));
+  }
 
-      const previews = this.previews.get();
-
-      if (!previewInfo) {
-        previewInfo = { port, ready: type === 'open', baseUrl: url };
-        this.#availablePreviews.set(port, previewInfo);
-        previews.push(previewInfo);
-      }
-
-      previewInfo.ready = type === 'open';
-      previewInfo.baseUrl = url;
-
-      this.previews.set([...previews]);
-    });
+  getPreview(port: number) {
+    return this.#availablePreviews.get(port);
   }
 }

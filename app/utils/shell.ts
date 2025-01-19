@@ -2,57 +2,14 @@ import type { WebContainer, WebContainerProcess } from '@webcontainer/api';
 import type { ITerminal } from '~/types/terminal';
 import { withResolvers } from './promises';
 import { atom } from 'nanostores';
+import { actionRunner } from '~/lib/client';
 
-export async function newShellProcess(webcontainer: WebContainer, terminal: ITerminal) {
-  const args: string[] = [];
-
-  // we spawn a JSH process with a fallback cols and rows in case the process is not attached yet to a visible terminal
-  const process = await webcontainer.spawn('/bin/jsh', ['--osc', ...args], {
-    terminal: {
-      cols: terminal.cols ?? 80,
-      rows: terminal.rows ?? 15,
-    },
-  });
-
-  const input = process.input.getWriter();
-  const output = process.output;
-
-  const jshReady = withResolvers<void>();
-
-  let isInteractive = false;
-  output.pipeTo(
-    new WritableStream({
-      write(data) {
-        if (!isInteractive) {
-          const [, osc] = data.match(/\x1b\]654;([^\x07]+)\x07/) || [];
-
-          if (osc === 'interactive') {
-            // wait until we see the interactive OSC
-            isInteractive = true;
-
-            jshReady.resolve();
-          }
-        }
-
-        terminal.write(data);
-      },
-    }),
-  );
-
-  terminal.onData((data) => {
-    // console.log('terminal onData', { data, isInteractive });
-
-    if (isInteractive) {
-      input.write(data);
-    }
-  });
-
-  await jshReady.promise;
-
-  return process;
+export interface ExecutionResult {
+  code: number;
+  signal: string | null;
+  stdout: string;
+  stderr: string;
 }
-
-export type ExecutionResult = { output: string; exitCode: number } | undefined;
 
 export class BoltShell {
   #initialized: (() => void) | undefined;
@@ -96,46 +53,23 @@ export class BoltShell {
   }
 
   async executeCommand(sessionId: string, command: string, abort?: () => void): Promise<ExecutionResult> {
-    if (!this.process || !this.terminal) {
-      return undefined;
+    try {
+      const output = await actionRunner.runCommand(command, process.cwd());
+      
+      return {
+        code: 0,
+        signal: null,
+        stdout: output,
+        stderr: ''
+      };
+    } catch (error) {
+      return {
+        code: 1,
+        signal: null,
+        stdout: '',
+        stderr: String(error)
+      };
     }
-
-    const state = this.executionState.get();
-
-    if (state?.active && state.abort) {
-      state.abort();
-    }
-
-    /*
-     * interrupt the current execution
-     *  this.#shellInputStream?.write('\x03');
-     */
-    this.terminal.input('\x03');
-    await this.waitTillOscCode('prompt');
-
-    if (state && state.executionPrms) {
-      await state.executionPrms;
-    }
-
-    //start a new execution
-    this.terminal.input(command.trim() + '\n');
-
-    //wait for the execution to finish
-    const executionPromise = this.getCurrentExecutionResult();
-    this.executionState.set({ sessionId, active: true, executionPrms: executionPromise, abort });
-
-    const resp = await executionPromise;
-    this.executionState.set({ sessionId, active: false });
-
-    if (resp) {
-      try {
-        resp.output = cleanTerminalOutput(resp.output);
-      } catch (error) {
-        console.log('failed to format terminal output', error);
-      }
-    }
-
-    return resp;
   }
 
   async newBoltShellProcess(webcontainer: WebContainer, terminal: ITerminal) {

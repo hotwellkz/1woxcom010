@@ -5,6 +5,8 @@ import { forwardRef, memo, useEffect, useImperativeHandle, useRef } from 'react'
 import type { Theme } from '~/lib/stores/theme';
 import { createScopedLogger } from '~/utils/logger';
 import { getTerminalTheme } from './theme';
+import { terminalStore } from '~/lib/client';
+import { nanoid } from 'nanoid';
 
 const logger = createScopedLogger('Terminal');
 
@@ -26,6 +28,7 @@ export const Terminal = memo(
     ({ className, theme, readonly, id, onTerminalReady, onTerminalResize }, ref) => {
       const terminalElementRef = useRef<HTMLDivElement>(null);
       const terminalRef = useRef<XTerm>();
+      const terminalId = useRef(nanoid());
 
       useEffect(() => {
         const element = terminalElementRef.current!;
@@ -58,6 +61,9 @@ export const Terminal = memo(
         logger.debug(`Attach [${id}]`);
 
         onTerminalReady?.(terminal);
+
+        // Создаем терминал на сервере и устанавливаем WebSocket соединение
+        terminalStore.createTerminal(terminalId.current, terminal);
 
         return () => {
           resizeObserver.disconnect();

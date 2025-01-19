@@ -1,3 +1,5 @@
+// This file is deprecated and will be removed in favor of server implementation
+/*
 import { WebContainer } from '@webcontainer/api';
 import { WORK_DIR_NAME } from '~/utils/constants';
 import { cleanStackTrace } from '~/utils/stacktrace';
@@ -57,3 +59,9 @@ if (!import.meta.env.SSR) {
     import.meta.hot.data.webcontainer = webcontainer;
   }
 }
+
+*/
+
+// Export dummy promises for now
+export const webcontainer = Promise.resolve(null);
+export const webcontainerContext = { loaded: false };
