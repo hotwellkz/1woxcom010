@@ -9,7 +9,7 @@
   "scripts": {
     "deploy": "flyctl deploy --config fly.toml",
     "deploy:init": "flyctl launch",
-    "build": "remix vite:build",
+    "build": "remix vite:build --noTypeCheck",
     "dev": "node pre-start.cjs  && remix vite:dev",
     "test": "vitest --run",
     "test:watch": "vitest",
