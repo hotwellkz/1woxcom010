@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "1woxcom002-twilight-leaf-5339"
+app = "black-bush-555"
 primary_region = "ams"
 
 [build]
