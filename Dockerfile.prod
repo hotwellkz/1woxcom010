@@ -1,48 +1,27 @@
-# base node image
-FROM node:18-bullseye-slim as base
-
-# Install openssl for Prisma
-RUN apt-get update && apt-get install -y openssl
-
-# Install all node_modules, including dev dependencies
-FROM base as deps
+FROM node:18-slim
 
 WORKDIR /app
 
-ADD package.json ./
-RUN npm install --include=dev
+# Copy package files
+COPY package.json ./
+COPY package-lock.json ./
 
-# Setup production node_modules
-FROM base as production-deps
+# Install dependencies
+RUN npm ci
 
-WORKDIR /app
-
-COPY --from=deps /app/package.json ./
-RUN npm install --omit=dev
+# Copy source code
+COPY . .
 
 # Build the app
-FROM base as build
-
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
-ADD . .
 RUN npm run build
 
-# Finally, build the production image with minimal footprint
-FROM base
-
+# Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-WORKDIR /app
-
-COPY --from=production-deps /app/node_modules ./node_modules
-COPY --from=build /app/build ./build
-COPY --from=build /app/public ./public
-ADD . .
-
+# Expose port
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Start the server
+CMD ["node", "./build/server/index.js"]
