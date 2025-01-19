@@ -1,4 +1,7 @@
-FROM node:18-slim
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache python3 make g++ git
 
 WORKDIR /app
 
@@ -6,10 +9,10 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Copy source code
 COPY . .
