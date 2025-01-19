@@ -6,6 +6,7 @@ import { themeStore } from './lib/stores/theme';
 import { stripIndents } from './utils/stripIndent';
 import { createHead } from 'remix-island';
 import { useEffect } from 'react';
+import { YandexMetrika } from './components/YandexMetrika';
 
 import reactToastifyStyles from 'react-toastify/dist/ReactToastify.css?url';
 import globalStyles from './styles/index.scss?url';
@@ -70,6 +71,7 @@ const yandexMetrikaCode = stripIndents`
 export const Head = createHead(() => (
   <>
     <meta charSet="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Create an AI Website | Build AI-Powered Websites with 1wox</title>
     <meta name="description" content="Create an AI website easily with 1wox. Our AI-powered platform helps you build, customize and deploy websites in minutes. Start creating your AI website today!" />
     <meta name="keywords" content="create AI website, AI website builder, AI web development, 1wox" />
@@ -78,16 +80,10 @@ export const Head = createHead(() => (
     <meta property="og:description" content="Create an AI website easily with 1wox. Our AI-powered platform helps you build, customize and deploy websites in minutes." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://1wox.com" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Meta />
     <Links />
     <script dangerouslySetInnerHTML={{ __html: inlineThemeCode }} />
-    <script dangerouslySetInnerHTML={{ __html: yandexMetrikaCode }} />
-    <noscript>
-      <div>
-        <img src="https://mc.yandex.ru/watch/99523113" style={{ position: 'absolute', left: '-9999px' }} alt="" />
-      </div>
-    </noscript>
+    <YandexMetrika />
   </>
 ));
 
