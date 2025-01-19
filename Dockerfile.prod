@@ -1,24 +1,48 @@
-FROM node:18-slim
+# base node image
+FROM node:18-bullseye-slim as base
+
+# Install openssl for Prisma
+RUN apt-get update && apt-get install -y openssl
+
+# Install all node_modules, including dev dependencies
+FROM base as deps
 
 WORKDIR /app
 
-# Install dependencies first (better layer caching)
-COPY package*.json ./
-RUN npm install
+ADD package.json ./
+RUN npm install --include=dev
 
-# Copy the rest of the application
-COPY . .
+# Setup production node_modules
+FROM base as production-deps
 
-# Build the application
+WORKDIR /app
+
+COPY --from=deps /app/package.json ./
+RUN npm install --omit=dev
+
+# Build the app
+FROM base as build
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+ADD . .
 RUN npm run build
 
-# Set environment variables
+# Finally, build the production image with minimal footprint
+FROM base
+
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-# Expose the port
+WORKDIR /app
+
+COPY --from=production-deps /app/node_modules ./node_modules
+COPY --from=build /app/build ./build
+COPY --from=build /app/public ./public
+ADD . .
+
 EXPOSE 3000
 
-# Start the server using @remix-run/serve
-CMD ["npx", "@remix-run/serve", "build"]
+CMD ["npm", "start"]
