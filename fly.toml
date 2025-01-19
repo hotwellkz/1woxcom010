@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "black-bush-555"
+app = "bolt-ai-app"
 primary_region = "ams"
 
 [build]
@@ -36,6 +36,6 @@ primary_region = "ams"
     grace_period = "1s"
 
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
+  cpu_kind = "shared"
   cpus = 1
+  memory_mb = 1024
