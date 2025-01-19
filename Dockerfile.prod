@@ -2,13 +2,12 @@ FROM node:16
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm
-RUN pnpm install --frozen-lockfile
+COPY package.json ./
+RUN npm install
 
 COPY . .
 
-RUN pnpm build
+RUN npm run build
 
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -16,4 +15,4 @@ ENV HOST=0.0.0.0
 
 EXPOSE 3000
 
-CMD ["node", "build/server/index.js"]
+CMD ["npm", "start"]
